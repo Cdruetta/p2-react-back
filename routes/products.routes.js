@@ -10,10 +10,11 @@ const {
 const verifyToken = require('../middlewares/verifyToken')
 const isAdmin = require('../middlewares/isAdmin')
 
+
 router.get('/', verifyToken, getProducts)
-router.get('/:id', getProductById)
+router.get('/:id', verifyToken, getProductById)
 router.post('/', verifyToken, isAdmin, createProduct)
-router.put('/:id', updateProduct)
-router.delete('/:id', deleteProduct)
+router.put('/:id', verifyToken, isAdmin, updateProduct)
+router.delete('/:id', verifyToken, isAdmin, deleteProduct)
 
 module.exports = router

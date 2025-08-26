@@ -1,6 +1,6 @@
 const { Usuario } = require('../models');
 
-// Obtener todos los usuarios
+
 const getUsuarios = async (req, res) => {
     try {
         const usuarios = await Usuario.findAll();
@@ -10,20 +10,26 @@ const getUsuarios = async (req, res) => {
     }
 };
 
-// Obtener usuario por ID
+
 const getUsuarioById = async (req, res) => {
     try {
         const usuario = await Usuario.findByPk(req.params.id);
         if (!usuario) {
             return res.status(404).json({ status: 404, message: 'Usuario no encontrado' });
         }
+
+        // Solo admin o el propio usuario pueden ver la info
+        if (req.user.rol !== 'admin' && req.user.id !== usuario.id) {
+            return res.status(403).json({ status: 403, message: 'Acceso denegado' });
+        }
+
         res.json({ status: 200, data: usuario });
     } catch (error) {
         res.status(500).json({ status: 500, message: 'Error al obtener usuario', error: error.message });
     }
 };
 
-// Crear nuevo usuario
+
 const createUsuario = async (req, res) => {
     const { nombre, email, edad } = req.body;
     try {
@@ -38,12 +44,15 @@ const createUsuario = async (req, res) => {
     }
 };
 
-// Editar usuario
+
 const updateUsuario = async (req, res) => {
     try {
         const usuario = await Usuario.findByPk(req.params.id);
-        if (!usuario) {
-            return res.status(404).json({ status: 404, message: 'Usuario no encontrado' });
+        if (!usuario) return res.status(404).json({ status: 404, message: 'Usuario no encontrado' });
+
+        // Solo admin o el propio usuario puede editar
+        if (req.user.rol !== 'admin' && req.user.id !== usuario.id) {
+            return res.status(403).json({ status: 403, message: 'Acceso denegado' });
         }
 
         const { nombre, email, edad } = req.body;
@@ -59,7 +68,7 @@ const updateUsuario = async (req, res) => {
     }
 };
 
-// Eliminar usuario
+
 const deleteUsuario = async (req, res) => {
     try {
         const usuario = await Usuario.findByPk(req.params.id);
@@ -75,10 +84,33 @@ const deleteUsuario = async (req, res) => {
     }
 };
 
+
+const updateRolUsuario = async (req, res) => {
+    try {
+        const usuario = await Usuario.findByPk(req.params.id);
+        if (!usuario) {
+            return res.status(404).json({ status: 404, message: 'Usuario no encontrado' });
+        }
+
+        const { rol } = req.body;
+        if (!rol) {
+            return res.status(400).json({ status: 400, message: 'Debe especificar un rol' });
+        }
+
+        usuario.rol = rol;
+        await usuario.save();
+
+        res.status(200).json({ status: 200, message: 'Rol actualizado exitosamente', data: usuario });
+    } catch (error) {
+        res.status(500).json({ status: 500, message: 'Error al actualizar rol', error: error.message });
+    }
+};
+
 module.exports = {
     getUsuarios,
     getUsuarioById,
     createUsuario,
     updateUsuario,
-    deleteUsuario
+    deleteUsuario,
+    updateRolUsuario 
 };

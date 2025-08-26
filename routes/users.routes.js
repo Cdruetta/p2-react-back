@@ -5,13 +5,19 @@ const {
     getUsuarioById,
     createUsuario,
     updateUsuario,
-    deleteUsuario
+    deleteUsuario,
+    updateRolUsuario
 } = require('../controllers/users.controller');
 
-router.get('/', getUsuarios);
-router.get('/:id', getUsuarioById);
+const verifyToken = require('../middlewares/verifyToken');
+const isAdmin = require('../middlewares/isAdmin');
+
+
 router.post('/', createUsuario);
-router.put('/:id', updateUsuario);
-router.delete('/:id', deleteUsuario);
+router.get('/', verifyToken, isAdmin, getUsuarios);
+router.get('/:id', verifyToken, getUsuarioById);
+router.put('/:id', verifyToken, isAdmin, updateUsuario);
+router.delete('/:id', verifyToken, isAdmin, deleteUsuario);
+router.put('/:id/rol', verifyToken, isAdmin, updateRolUsuario);
 
 module.exports = router;
